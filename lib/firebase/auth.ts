@@ -85,8 +85,17 @@ export async function getCurrentUser(firebaseUser: FirebaseUser): Promise<User |
 
       // デバッグ：生データを確認
       console.log('🔍 Firestoreから取得した生データ:', data);
+      console.log('🔍 全フィールド名:', Object.keys(data));
       console.log('🔍 data.role の値:', data.role);
       console.log('🔍 data.role の型:', typeof data.role);
+
+      // 各フィールドを個別に確認
+      console.log('🔍 個別フィールド確認:');
+      console.log('  - email:', data.email);
+      console.log('  - name:', data.name);
+      console.log('  - role:', data.role);
+      console.log('  - status:', data.status);
+      console.log('  - phone:', data.phone);
 
       const user = {
         id: userDoc.id,
