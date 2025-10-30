@@ -8,15 +8,26 @@ import { Card, Button } from '@/components';
 
 export default function TesterDashboard() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
 
   useEffect(() => {
+    // エラーがある場合、トップページにリダイレクト（エラー画面表示）
+    if (!loading && error) {
+      router.push('/');
+      return;
+    }
+
+    // ユーザー情報がない場合、ログイン画面へ
     if (!loading && !user) {
       router.push('/login');
-    } else if (!loading && user && user.role !== 'tester') {
+      return;
+    }
+
+    // テスター以外は管理者ダッシュボードへ
+    if (!loading && user && user.role !== 'tester') {
       router.push('/admin/dashboard');
     }
-  }, [user, loading]);
+  }, [user, loading, error]);
 
   const handleLogout = async () => {
     try {
