@@ -195,10 +195,12 @@ export default function TesterDashboard() {
               <p className="text-sm text-gray-600">打刻履歴を確認</p>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">💰 給与確認</h4>
-              <p className="text-sm text-gray-600">給与明細を確認</p>
-            </Card>
+            <Link href="/tester/payroll">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">💰 給与確認</h4>
+                <p className="text-sm text-gray-600">給与明細を確認</p>
+              </Card>
+            </Link>
           </div>
         </div>
       </main>

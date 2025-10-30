@@ -137,10 +137,12 @@ export default function AdminDashboard() {
               </Card>
             </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">💰 給与管理</h4>
-              <p className="text-sm text-gray-600">給与計算・レポート</p>
-            </Card>
+            <Link href="/admin/payroll">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">💰 給与管理</h4>
+                <p className="text-sm text-gray-600">給与計算・レポート</p>
+              </Card>
+            </Link>
 
             <Link href="/admin/testers">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
