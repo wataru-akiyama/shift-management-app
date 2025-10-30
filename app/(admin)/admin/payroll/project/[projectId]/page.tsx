@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getProject } from '@/lib/firebase/projects';
 import { getAttendances } from '@/lib/firebase/attendance';
 import { getShifts } from '@/lib/firebase/shifts';
-import { getUsers } from '@/lib/firebase/users';
+import { getTesters } from '@/lib/firebase/testers';
 import { calculateProjectWage } from '@/lib/utils/payroll';
 import { Project } from '@/types';
 
@@ -40,11 +40,11 @@ export default function ProjectPayrollPage() {
     try {
       setDataLoading(true);
 
-      const [projectData, attendancesData, shiftsData, usersData] = await Promise.all([
+      const [projectData, attendancesData, shiftsData, testersData] = await Promise.all([
         getProject(projectId),
         getAttendances(),
         getShifts(),
-        getUsers(),
+        getTesters(),
       ]);
 
       if (!projectData) {
@@ -56,7 +56,7 @@ export default function ProjectPayrollPage() {
       setProject(projectData);
 
       const testerNames = new Map(
-        usersData.filter((u) => u.role === 'tester').map((u) => [u.id, u.name])
+        testersData.map((u) => [u.id, u.name])
       );
 
       const calculationResult = calculateProjectWage(

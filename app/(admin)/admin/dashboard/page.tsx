@@ -7,7 +7,7 @@ import { signOut } from '@/lib/firebase/auth';
 import { getShifts } from '@/lib/firebase/shifts';
 import { getAttendances } from '@/lib/firebase/attendance';
 import { getShiftRequestsByStatus } from '@/lib/firebase/shiftRequests';
-import { getUsers } from '@/lib/firebase/users';
+import { getTesters } from '@/lib/firebase/testers';
 import { getProjects } from '@/lib/firebase/projects';
 import { Shift, Attendance, User, Project } from '@/types';
 import { Card, Button } from '@/components';
@@ -51,18 +51,18 @@ export default function AdminDashboard() {
     try {
       setDataLoading(true);
 
-      const [shiftsData, attendancesData, pendingRequests, usersData, projectsData] = await Promise.all([
+      const [shiftsData, attendancesData, pendingRequests, testersData, projectsData] = await Promise.all([
         getShifts(),
         getAttendances(),
         getShiftRequestsByStatus('pending'),
-        getUsers(),
+        getTesters(),
         getProjects(),
       ]);
 
       setShifts(shiftsData);
       setAttendances(attendancesData);
       setPendingRequestsCount(pendingRequests.length);
-      setUsers(usersData);
+      setUsers(testersData);
       setProjects(projectsData);
     } catch (err) {
       console.error('データ取得エラー:', err);

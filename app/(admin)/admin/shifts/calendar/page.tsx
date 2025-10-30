@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getShifts } from '@/lib/firebase/shifts';
-import { getUsers } from '@/lib/firebase/users';
+import { getTesters } from '@/lib/firebase/testers';
 import { getProjects } from '@/lib/firebase/projects';
 import { Shift, User, Project } from '@/types';
 
@@ -39,13 +39,13 @@ export default function AdminShiftsCalendarPage() {
   const fetchData = async () => {
     try {
       setDataLoading(true);
-      const [shiftsData, usersData, projectsData] = await Promise.all([
+      const [shiftsData, testersData, projectsData] = await Promise.all([
         getShifts(),
-        getUsers(),
+        getTesters(),
         getProjects(),
       ]);
       setShifts(shiftsData);
-      setUsers(usersData.filter((u) => u.role === 'tester'));
+      setUsers(testersData);
       setProjects(projectsData);
     } catch (err) {
       console.error('データ取得エラー:', err);

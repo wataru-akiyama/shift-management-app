@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { getUser } from '@/lib/firebase/users';
+import { getTester } from '@/lib/firebase/testers';
 import { getShiftsByTester } from '@/lib/firebase/shifts';
 import { clockIn, clockOut, getAttendanceByShift } from '@/lib/firebase/attendance';
 import { User, Shift } from '@/types';
@@ -74,7 +74,7 @@ export default function IpadAttendancePage() {
       const testerId = decodedText.trim();
 
       // テスター情報を取得
-      const testerData = await getUser(testerId);
+      const testerData = await getTester(testerId);
       if (!testerData) {
         setMessage({ type: 'error', text: 'テスター情報が見つかりません' });
         setTimeout(() => {

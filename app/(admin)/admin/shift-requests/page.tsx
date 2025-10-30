@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getShiftRequests, approveShiftRequest, rejectShiftRequest } from '@/lib/firebase/shiftRequests';
-import { getUsers } from '@/lib/firebase/users';
+import { getTesters } from '@/lib/firebase/testers';
 import { getProjects } from '@/lib/firebase/projects';
 import { ShiftRequest, User, Project } from '@/types';
 
@@ -44,13 +44,13 @@ export default function AdminShiftRequestsPage() {
   const fetchData = async () => {
     try {
       setRequestsLoading(true);
-      const [requestsData, usersData, projectsData] = await Promise.all([
+      const [requestsData, testersData, projectsData] = await Promise.all([
         getShiftRequests(),
-        getUsers(),
+        getTesters(),
         getProjects(),
       ]);
       setShiftRequests(requestsData);
-      setUsers(usersData);
+      setUsers(testersData);
       setProjects(projectsData.filter((p) => p.status === 'active'));
     } catch (err) {
       console.error('データ取得エラー:', err);
