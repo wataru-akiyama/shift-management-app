@@ -123,6 +123,13 @@ export default function AdminDashboard() {
               </Card>
             </Link>
 
+            <Link href="/admin/shift-requests">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">📝 シフト申請管理</h4>
+                <p className="text-sm text-gray-600">シフト申請の承認・却下</p>
+              </Card>
+            </Link>
+
             <Link href="/admin/shifts">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <h4 className="font-bold text-gray-900 mb-2">📅 シフト管理</h4>

@@ -221,12 +221,14 @@ export async function clockIn(testerId: string, shiftId: string): Promise<string
   try {
     const attendancesRef = collection(db, 'attendances');
     const now = new Date();
+    const roundedTime = roundClockInTime(now);
 
     const docRef = await addDoc(attendancesRef, {
       testerId,
       shiftId,
       date: Timestamp.fromDate(now),
-      clockInTime: Timestamp.fromDate(now),
+      clockInTime: Timestamp.fromDate(now), // 実際の打刻時刻
+      recordedClockInTime: Timestamp.fromDate(roundedTime), // 15分単位に丸めた時刻
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
@@ -246,9 +248,11 @@ export async function clockOut(attendanceId: string): Promise<void> {
   try {
     const attendanceRef = doc(db, 'attendances', attendanceId);
     const now = new Date();
+    const roundedTime = roundClockOutTime(now);
 
     await updateDoc(attendanceRef, {
-      clockOutTime: Timestamp.fromDate(now),
+      clockOutTime: Timestamp.fromDate(now), // 実際の打刻時刻
+      recordedClockOutTime: Timestamp.fromDate(roundedTime), // 15分単位に丸めた時刻
       updatedAt: Timestamp.now(),
     });
 
@@ -282,9 +286,6 @@ export async function updateAttendance(
     if (attendanceData.recordedClockOutTime) {
       updateData.recordedClockOutTime = Timestamp.fromDate(attendanceData.recordedClockOutTime);
     }
-    if (attendanceData.breakHours !== undefined) {
-      updateData.breakHours = attendanceData.breakHours;
-    }
 
     // 勤務時間を計算
     if (attendanceData.recordedClockInTime && attendanceData.recordedClockOutTime) {
@@ -294,9 +295,23 @@ export async function updateAttendance(
       );
       updateData.workHours = workHours;
 
+      // 休憩時間を設定（未指定の場合は自動検知）
+      let breakHours: number;
+      if (attendanceData.breakHours !== undefined) {
+        breakHours = attendanceData.breakHours;
+      } else {
+        // 12:00-13:00の休憩時間を自動検知
+        breakHours = detectLunchBreak(
+          attendanceData.recordedClockInTime,
+          attendanceData.recordedClockOutTime
+        );
+      }
+      updateData.breakHours = breakHours;
+
       // 実働時間を計算
-      const breakHours = attendanceData.breakHours || 0;
       updateData.actualWorkHours = workHours - breakHours;
+    } else if (attendanceData.breakHours !== undefined) {
+      updateData.breakHours = attendanceData.breakHours;
     }
 
     await updateDoc(attendanceRef, updateData);
@@ -305,6 +320,53 @@ export async function updateAttendance(
     console.error('出退勤記録更新エラー:', error);
     throw error;
   }
+}
+
+/**
+ * 出勤時刻を15分単位で切り捨て
+ * 例: 9:07 → 9:00, 9:23 → 9:15
+ */
+export function roundClockInTime(date: Date): Date {
+  const rounded = new Date(date);
+  const minutes = rounded.getMinutes();
+  const roundedMinutes = Math.floor(minutes / 15) * 15;
+  rounded.setMinutes(roundedMinutes);
+  rounded.setSeconds(0);
+  rounded.setMilliseconds(0);
+  return rounded;
+}
+
+/**
+ * 退勤時刻を15分単位で切り上げ
+ * 例: 18:07 → 18:15, 18:23 → 18:30
+ */
+export function roundClockOutTime(date: Date): Date {
+  const rounded = new Date(date);
+  const minutes = rounded.getMinutes();
+  const roundedMinutes = Math.ceil(minutes / 15) * 15;
+  rounded.setMinutes(roundedMinutes);
+  rounded.setSeconds(0);
+  rounded.setMilliseconds(0);
+  return rounded;
+}
+
+/**
+ * 12:00-13:00の休憩時間が含まれるかを検出
+ * 出勤時刻が12:00より前で、退勤時刻が13:00より後の場合、1時間の休憩を返す
+ */
+export function detectLunchBreak(startTime: Date, endTime: Date): number {
+  const lunchStart = new Date(startTime);
+  lunchStart.setHours(12, 0, 0, 0);
+
+  const lunchEnd = new Date(startTime);
+  lunchEnd.setHours(13, 0, 0, 0);
+
+  // 出勤時刻が12:00より前で、退勤時刻が13:00より後の場合
+  if (startTime < lunchStart && endTime > lunchEnd) {
+    return 1; // 1時間の休憩
+  }
+
+  return 0; // 休憩なし
 }
 
 /**

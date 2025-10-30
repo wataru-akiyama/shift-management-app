@@ -173,10 +173,12 @@ export default function TesterDashboard() {
         <div className="mt-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">メニュー</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">📅 シフト希望提出</h4>
-              <p className="text-sm text-gray-600">シフト希望を提出・編集</p>
-            </Card>
+            <Link href="/tester/shift-requests">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">📅 シフト希望提出</h4>
+                <p className="text-sm text-gray-600">シフト希望を提出・編集</p>
+              </Card>
+            </Link>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <h4 className="font-bold text-gray-900 mb-2">📆 シフト確認</h4>
