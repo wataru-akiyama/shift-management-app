@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { getShiftsByTester } from '@/lib/firebase/shifts';
 import { getProjects } from '@/lib/firebase/projects';
 import { Shift, Project } from '@/types';
