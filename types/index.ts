@@ -19,14 +19,20 @@ export interface User {
   updatedAt: Date;
 }
 
+// 案件ステータス
+export type ProjectStatus = 'active' | 'completed' | 'cancelled';
+
 // 案件
 export interface Project {
   id: string;
   name: string;
+  description?: string;
+  location: string;
   startDate: Date;
   endDate: Date;
   baseHourlyWage: number;
   requiredHours: number;
+  status: ProjectStatus;
   createdAt: Date;
   updatedAt: Date;
 }
