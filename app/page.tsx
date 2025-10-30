@@ -1,20 +1,35 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/contexts/AuthContext';
+
 export default function Home() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        // ログイン済みの場合、役割に応じてリダイレクト
+        if (user.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/tester/dashboard');
+        }
+      } else {
+        // 未ログインの場合、ログイン画面へ
+        router.push('/login');
+      }
+    }
+  }, [user, loading, router]);
+
+  // ローディング中の表示
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            シフト管理アプリ
-          </h1>
-          <p className="text-gray-600">
-            出勤退勤管理・給与計算システム
-          </p>
-        </div>
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500 text-center">
-            プロジェクトセットアップが完了しました
-          </p>
-        </div>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">読み込み中...</p>
       </div>
     </div>
   );
