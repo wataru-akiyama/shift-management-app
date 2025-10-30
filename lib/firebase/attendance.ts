@@ -11,7 +11,8 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './config';
-import { Attendance } from '@/types';
+import { Attendance, ProjectAllocation } from '@/types';
+import { getShift } from './shifts';
 
 /**
  * Firestoreのタイムスタンプを日付に変換
@@ -264,6 +265,68 @@ export async function clockOut(attendanceId: string): Promise<void> {
 }
 
 /**
+ * 複数案件の時間を自動配分
+ */
+async function allocateTimeToProjects(
+  testerId: string,
+  date: Date,
+  actualWorkHours: number
+): Promise<ProjectAllocation[] | null> {
+  try {
+    // その日のすべてのシフトを取得
+    const shiftsRef = collection(db, 'shifts');
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const q = query(
+      shiftsRef,
+      where('testerId', '==', testerId),
+      where('date', '>=', Timestamp.fromDate(startOfDay)),
+      where('date', '<=', Timestamp.fromDate(endOfDay))
+    );
+    const querySnapshot = await getDocs(q);
+
+    const shifts = [];
+    for (const doc of querySnapshot.docs) {
+      const data = doc.data();
+      shifts.push({
+        id: doc.id,
+        projectId: data.projectId,
+        expectedWorkHours: data.expectedWorkHours,
+        hourlyWage: data.hourlyWage,
+      });
+    }
+
+    // シフトが1つだけの場合は配分不要
+    if (shifts.length <= 1) {
+      return null;
+    }
+
+    // 複数シフトがある場合、予定時間の比率で配分
+    const totalExpectedHours = shifts.reduce((sum, s) => sum + s.expectedWorkHours, 0);
+
+    const allocations: ProjectAllocation[] = shifts.map((shift) => {
+      const ratio = shift.expectedWorkHours / totalExpectedHours;
+      const hours = Math.round(actualWorkHours * ratio * 100) / 100;
+
+      return {
+        shiftId: shift.id,
+        projectId: shift.projectId,
+        hours,
+        hourlyWage: shift.hourlyWage,
+      };
+    });
+
+    return allocations;
+  } catch (error) {
+    console.error('時間配分エラー:', error);
+    return null;
+  }
+}
+
+/**
  * 出退勤記録を更新（管理者による修正）
  */
 export async function updateAttendance(
@@ -272,10 +335,19 @@ export async function updateAttendance(
     recordedClockInTime?: Date;
     recordedClockOutTime?: Date;
     breakHours?: number;
+    projectAllocations?: ProjectAllocation[];
   }
 ): Promise<void> {
   try {
     const attendanceRef = doc(db, 'attendances', attendanceId);
+
+    // 既存の出退勤記録を取得
+    const attendanceDoc = await getDoc(attendanceRef);
+    if (!attendanceDoc.exists()) {
+      throw new Error('出退勤記録が見つかりません');
+    }
+    const existingData = attendanceDoc.data();
+
     const updateData: any = {
       updatedAt: Timestamp.now(),
     };
@@ -309,9 +381,30 @@ export async function updateAttendance(
       updateData.breakHours = breakHours;
 
       // 実働時間を計算
-      updateData.actualWorkHours = workHours - breakHours;
+      const actualWorkHours = workHours - breakHours;
+      updateData.actualWorkHours = actualWorkHours;
+
+      // 複数案件の自動配分（手動指定がない場合）
+      if (!attendanceData.projectAllocations) {
+        const allocations = await allocateTimeToProjects(
+          existingData.testerId,
+          convertTimestampToDate(existingData.date),
+          actualWorkHours
+        );
+        if (allocations) {
+          updateData.projectAllocations = allocations;
+        }
+      } else {
+        // 手動で配分が指定された場合
+        updateData.projectAllocations = attendanceData.projectAllocations;
+      }
     } else if (attendanceData.breakHours !== undefined) {
       updateData.breakHours = attendanceData.breakHours;
+    }
+
+    // projectAllocationsのみ更新の場合
+    if (attendanceData.projectAllocations && !attendanceData.recordedClockInTime && !attendanceData.recordedClockOutTime) {
+      updateData.projectAllocations = attendanceData.projectAllocations;
     }
 
     await updateDoc(attendanceRef, updateData);

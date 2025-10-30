@@ -63,11 +63,20 @@ export interface Shift {
   updatedAt: Date;
 }
 
+// 案件別時間配分
+export interface ProjectAllocation {
+  shiftId: string;
+  projectId: string;
+  projectName?: string;
+  hours: number;
+  hourlyWage: number;
+}
+
 // 出退勤記録
 export interface Attendance {
   id: string;
   testerId: string;
-  shiftId: string;
+  shiftId: string; // 主となるシフトID（複数案件の場合は最初のシフト）
   date: Date;
 
   // 打刻時刻（参考データ）
@@ -82,6 +91,9 @@ export interface Attendance {
   workHours?: number;
   breakHours?: number;
   actualWorkHours?: number;
+
+  // 複数案件の時間配分（同日に複数シフトがある場合）
+  projectAllocations?: ProjectAllocation[];
 
   createdAt: Date;
   updatedAt: Date;

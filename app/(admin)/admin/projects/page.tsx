@@ -216,6 +216,12 @@ export default function ProjectsPage() {
                         >
                           編集
                         </Link>
+                        <Link
+                          href={`/admin/payroll/project/${project.id}`}
+                          className="text-purple-600 hover:text-purple-900"
+                        >
+                          給与
+                        </Link>
                         {project.status === 'active' && (
                           <>
                             <button

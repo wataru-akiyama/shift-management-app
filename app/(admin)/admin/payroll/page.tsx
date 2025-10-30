@@ -81,6 +81,25 @@ export default function PayrollPage() {
   const totalWorkDays = wageCalculations.reduce((sum, calc) => sum + calc.totalWorkDays, 0);
   const totalWorkHours = wageCalculations.reduce((sum, calc) => sum + calc.totalWorkHours, 0);
 
+  // 案件別集計
+  const projectWageMap = new Map<string, { projectName: string; wage: number }>();
+  wageCalculations.forEach((calc) => {
+    calc.projectBreakdown.forEach((project) => {
+      const existing = projectWageMap.get(project.projectId);
+      if (existing) {
+        existing.wage += project.wage;
+      } else {
+        projectWageMap.set(project.projectId, {
+          projectName: project.projectName,
+          wage: project.wage,
+        });
+      }
+    });
+  });
+  const projectWageBreakdown = Array.from(projectWageMap.entries())
+    .map(([projectId, data]) => ({ projectId, ...data }))
+    .sort((a, b) => b.wage - a.wage);
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -159,6 +178,57 @@ export default function PayrollPage() {
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
             {error}
           </div>
+        )}
+
+        {/* 案件別集計 */}
+        {projectWageBreakdown.length > 0 && (
+          <Card className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">案件別人件費</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      案件名
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      合計人件費
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {projectWageBreakdown.map((project) => (
+                    <tr key={project.projectId}>
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                        {project.projectName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-lg font-semibold text-green-600">
+                        ¥{Math.round(project.wage).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Link
+                          href={`/admin/payroll/project/${project.projectId}`}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          詳細を見る
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-50 font-bold">
+                    <td className="px-6 py-4 whitespace-nowrap">合計</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-lg text-green-600">
+                      ¥{totalWage.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
 
         {/* 給与一覧 */}
