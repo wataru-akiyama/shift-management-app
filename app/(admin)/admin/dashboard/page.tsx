@@ -1,15 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { signOut } from '@/lib/firebase/auth';
+import { getShifts } from '@/lib/firebase/shifts';
+import { getAttendances } from '@/lib/firebase/attendance';
+import { getShiftRequestsByStatus } from '@/lib/firebase/shiftRequests';
+import { getUsers } from '@/lib/firebase/users';
+import { getProjects } from '@/lib/firebase/projects';
+import { Shift, Attendance, User, Project } from '@/types';
 import { Card, Button } from '@/components';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { user, loading, error } = useAuth();
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [attendances, setAttendances] = useState<Attendance[]>([]);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [users, setUsers] = useState<User[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     // エラーがある場合、トップページにリダイレクト（エラー画面表示）
@@ -28,7 +40,36 @@ export default function AdminDashboard() {
     if (!loading && user && user.role !== 'admin') {
       router.push('/tester/dashboard');
     }
+
+    // データを取得
+    if (user && user.role === 'admin') {
+      fetchData();
+    }
   }, [user, loading, error]);
+
+  const fetchData = async () => {
+    try {
+      setDataLoading(true);
+
+      const [shiftsData, attendancesData, pendingRequests, usersData, projectsData] = await Promise.all([
+        getShifts(),
+        getAttendances(),
+        getShiftRequestsByStatus('pending'),
+        getUsers(),
+        getProjects(),
+      ]);
+
+      setShifts(shiftsData);
+      setAttendances(attendancesData);
+      setPendingRequestsCount(pendingRequests.length);
+      setUsers(usersData);
+      setProjects(projectsData);
+    } catch (err) {
+      console.error('データ取得エラー:', err);
+    } finally {
+      setDataLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -39,7 +80,41 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) {
+  // 統計情報を計算
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toDateString();
+
+  // 今日のシフト
+  const todayShifts = shifts.filter((s) => s.date.toDateString() === todayStr);
+
+  // 今日の出勤状況
+  const todayAttendances = attendances.filter((a) => a.date.toDateString() === todayStr);
+  const clockedInCount = todayAttendances.filter((a) => a.clockInTime).length;
+
+  // 今週のシフト
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  const weekShifts = shifts.filter((s) => {
+    const shiftDate = new Date(s.date);
+    return shiftDate >= startOfWeek && shiftDate <= endOfWeek;
+  });
+
+  // 今月のシフト
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const monthShifts = shifts.filter((s) => {
+    const shiftDate = new Date(s.date);
+    return shiftDate >= startOfMonth && shiftDate <= endOfMonth;
+  });
+
+  // ユーザー名とプロジェクト名のマップ
+  const userMap = new Map(users.map((u) => [u.id, u.name]));
+  const projectMap = new Map(projects.map((p) => [p.id, p.name]));
+
+  if (loading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -89,28 +164,105 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* 今日のシフト */}
           <Card title="今日のシフト">
             <p className="text-gray-600 text-sm mb-4">本日の予定されているシフト</p>
-            <p className="text-3xl font-bold text-primary-600 mb-2">0件</p>
-            <p className="text-sm text-gray-500">実装予定</p>
+            <p className="text-3xl font-bold text-primary-600 mb-2">{todayShifts.length}件</p>
+            <Link href="/admin/shifts" className="text-sm text-blue-600 hover:text-blue-800">
+              詳細を見る →
+            </Link>
           </Card>
 
           {/* 今日の出勤状況 */}
           <Card title="今日の出勤状況">
-            <p className="text-gray-600 text-sm mb-4">本日の打刻状況</p>
-            <p className="text-3xl font-bold text-green-600 mb-2">0名</p>
-            <p className="text-sm text-gray-500">実装予定</p>
+            <p className="text-gray-600 text-sm mb-4">本日の打刻済み人数</p>
+            <p className="text-3xl font-bold text-green-600 mb-2">
+              {clockedInCount} / {todayShifts.length}名
+            </p>
+            <Link href="/admin/attendance" className="text-sm text-blue-600 hover:text-blue-800">
+              詳細を見る →
+            </Link>
           </Card>
 
           {/* 未承認のシフト希望 */}
-          <Card title="未承認のシフト希望">
-            <p className="text-gray-600 text-sm mb-4">承認待ちの希望件数</p>
-            <p className="text-3xl font-bold text-orange-600 mb-2">0件</p>
-            <p className="text-sm text-gray-500">実装予定</p>
+          <Card title="未承認のシフト申請">
+            <p className="text-gray-600 text-sm mb-4">承認待ちの申請件数</p>
+            <p className="text-3xl font-bold text-orange-600 mb-2">{pendingRequestsCount}件</p>
+            <Link href="/admin/shift-requests" className="text-sm text-blue-600 hover:text-blue-800">
+              詳細を見る →
+            </Link>
+          </Card>
+
+          {/* 今週のシフト */}
+          <Card title="今週のシフト">
+            <p className="text-gray-600 text-sm mb-4">今週のシフト総数</p>
+            <p className="text-3xl font-bold text-purple-600 mb-2">{weekShifts.length}件</p>
+            <Link href="/admin/shifts/calendar" className="text-sm text-blue-600 hover:text-blue-800">
+              カレンダーを見る →
+            </Link>
           </Card>
         </div>
+
+        {/* 今日のシフト詳細 */}
+        {todayShifts.length > 0 && (
+          <Card className="mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">今日のシフト詳細</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      テスター
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      案件
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      時間
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      出勤状況
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {todayShifts.map((shift) => {
+                    const attendance = todayAttendances.find((a) => a.shiftId === shift.id);
+                    return (
+                      <tr key={shift.id}>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium">
+                          {userMap.get(shift.testerId) || '不明'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {projectMap.get(shift.projectId) || '不明'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {shift.startTime} 〜 {shift.endTime}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {attendance?.clockInTime && attendance?.clockOutTime ? (
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                              退勤済み
+                            </span>
+                          ) : attendance?.clockInTime ? (
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                              出勤中
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                              未出勤
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
 
         {/* クイックアクセス */}
         <div className="mt-8">
