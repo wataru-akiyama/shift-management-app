@@ -65,6 +65,37 @@ export default function AdminShiftRequestsPage() {
     return tester?.name || '不明';
   };
 
+  const formatDate = (date: Date | any): string => {
+    try {
+      const dateObj = date?.toDate ? date.toDate() : new Date(date);
+      return dateObj.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        weekday: 'short',
+      });
+    } catch (error) {
+      console.error('日付フォーマットエラー:', error, date);
+      return '不明な日付';
+    }
+  };
+
+  const formatDateTime = (date: Date | any): string => {
+    try {
+      const dateObj = date?.toDate ? date.toDate() : new Date(date);
+      return dateObj.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.error('日時フォーマットエラー:', error, date);
+      return '不明な日時';
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -206,12 +237,7 @@ export default function AdminShiftRequestsPage() {
                     {getTesterName(request.testerId)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(request.date).toLocaleDateString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      weekday: 'short',
-                    })}
+                    {formatDate(request.date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {request.startTime} 〜 {request.endTime}
@@ -220,13 +246,7 @@ export default function AdminShiftRequestsPage() {
                     {getStatusBadge(request.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(request.createdAt).toLocaleDateString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatDateTime(request.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {request.status === 'pending' && (
@@ -264,7 +284,7 @@ export default function AdminShiftRequestsPage() {
                 テスター: {getTesterName(selectedRequest.testerId)}
               </p>
               <p className="text-sm text-gray-600">
-                日時: {new Date(selectedRequest.date).toLocaleDateString('ja-JP')} {selectedRequest.startTime} 〜 {selectedRequest.endTime}
+                日時: {formatDate(selectedRequest.date)} {selectedRequest.startTime} 〜 {selectedRequest.endTime}
               </p>
             </div>
 

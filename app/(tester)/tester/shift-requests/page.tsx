@@ -43,6 +43,37 @@ export default function ShiftRequestsPage() {
     }
   };
 
+  const formatDate = (date: Date | any): string => {
+    try {
+      const dateObj = date?.toDate ? date.toDate() : new Date(date);
+      return dateObj.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        weekday: 'short',
+      });
+    } catch (error) {
+      console.error('日付フォーマットエラー:', error, date);
+      return '不明な日付';
+    }
+  };
+
+  const formatDateTime = (date: Date | any): string => {
+    try {
+      const dateObj = date?.toDate ? date.toDate() : new Date(date);
+      return dateObj.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.error('日時フォーマットエラー:', error, date);
+      return '不明な日時';
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -109,12 +140,7 @@ export default function ShiftRequestsPage() {
               {shiftRequests.map((request) => (
                 <tr key={request.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(request.date).toLocaleDateString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      weekday: 'short',
-                    })}
+                    {formatDate(request.date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {request.startTime} 〜 {request.endTime}
@@ -123,13 +149,7 @@ export default function ShiftRequestsPage() {
                     {getStatusBadge(request.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(request.createdAt).toLocaleDateString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatDateTime(request.createdAt)}
                   </td>
                 </tr>
               ))}
