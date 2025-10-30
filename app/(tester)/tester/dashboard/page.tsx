@@ -173,6 +173,13 @@ export default function TesterDashboard() {
         <div className="mt-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">メニュー</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/tester/my-qr">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">🔲 マイQRコード</h4>
+                <p className="text-sm text-gray-600">打刻用QRコードを表示</p>
+              </Card>
+            </Link>
+
             <Link href="/tester/shift-requests">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <h4 className="font-bold text-gray-900 mb-2">📅 シフト希望提出</h4>
@@ -180,10 +187,12 @@ export default function TesterDashboard() {
               </Card>
             </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">📆 シフト確認</h4>
-              <p className="text-sm text-gray-600">確定したシフトを確認</p>
-            </Card>
+            <Link href="/tester/shifts">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">📆 シフト確認</h4>
+                <p className="text-sm text-gray-600">確定したシフトを確認</p>
+              </Card>
+            </Link>
 
             <Link href="/tester/attendance">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -192,10 +201,12 @@ export default function TesterDashboard() {
               </Card>
             </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">⏰ 出退勤履歴</h4>
-              <p className="text-sm text-gray-600">打刻履歴を確認</p>
-            </Card>
+            <Link href="/tester/attendance-history">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">⏰ 出退勤履歴</h4>
+                <p className="text-sm text-gray-600">打刻履歴を確認</p>
+              </Card>
+            </Link>
 
             <Link href="/tester/payroll">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">

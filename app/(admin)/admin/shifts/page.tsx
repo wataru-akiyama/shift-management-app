@@ -118,11 +118,18 @@ export default function ShiftsPage() {
               <h1 className="text-2xl font-bold">シフト管理</h1>
               <p className="text-sm text-primary-100">シフトの確認・編集・削除</p>
             </div>
-            <Link href="/admin/shifts/new">
-              <Button variant="secondary" size="lg">
-                + 新規作成
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/admin/shifts/calendar">
+                <Button variant="secondary" size="lg">
+                  📅 カレンダー表示
+                </Button>
+              </Link>
+              <Link href="/admin/shifts/new">
+                <Button variant="secondary" size="lg">
+                  + 新規作成
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
