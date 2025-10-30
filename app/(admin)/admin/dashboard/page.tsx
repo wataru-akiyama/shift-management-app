@@ -116,10 +116,12 @@ export default function AdminDashboard() {
         <div className="mt-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">クイックアクセス</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">📋 案件管理</h4>
-              <p className="text-sm text-gray-600">案件の登録・編集・削除</p>
-            </Card>
+            <Link href="/admin/projects">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">📋 案件管理</h4>
+                <p className="text-sm text-gray-600">案件の登録・編集・削除</p>
+              </Card>
+            </Link>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <h4 className="font-bold text-gray-900 mb-2">📅 シフト管理</h4>
