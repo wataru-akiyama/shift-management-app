@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { signOut } from '@/lib/firebase/auth';
 import { Card, Button } from '@/components';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -135,10 +136,12 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-600">給与計算・レポート</p>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">👥 テスター管理</h4>
-              <p className="text-sm text-gray-600">テスターの登録・編集</p>
-            </Card>
+            <Link href="/admin/testers">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">👥 テスター管理</h4>
+                <p className="text-sm text-gray-600">テスターの登録・編集</p>
+              </Card>
+            </Link>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <h4 className="font-bold text-gray-900 mb-2">⚙️ システム設定</h4>
