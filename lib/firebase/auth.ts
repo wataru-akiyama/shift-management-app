@@ -82,7 +82,13 @@ export async function getCurrentUser(firebaseUser: FirebaseUser): Promise<User |
     const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
     if (userDoc.exists()) {
       const data = userDoc.data();
-      return {
+
+      // デバッグ：生データを確認
+      console.log('🔍 Firestoreから取得した生データ:', data);
+      console.log('🔍 data.role の値:', data.role);
+      console.log('🔍 data.role の型:', typeof data.role);
+
+      const user = {
         id: userDoc.id,
         name: data.name,
         email: data.email,
@@ -92,6 +98,10 @@ export async function getCurrentUser(firebaseUser: FirebaseUser): Promise<User |
         createdAt: data.createdAt?.toDate(),
         updatedAt: data.updatedAt?.toDate(),
       };
+
+      console.log('🔍 返却するユーザーオブジェクト:', user);
+
+      return user;
     }
     return null;
   } catch (error) {
