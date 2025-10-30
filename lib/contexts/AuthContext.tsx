@@ -32,11 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(null);
         if (firebaseUser) {
           // Firebase認証ユーザーが存在する場合、Firestoreからユーザー情報を取得
+          console.log('Firebase User UID:', firebaseUser.uid);
           const userData = await getCurrentUser(firebaseUser);
+          console.log('Fetched User Data:', userData);
           setUser(userData);
           setFirebaseUser(firebaseUser);
         } else {
           // ログアウト状態
+          console.log('No Firebase User');
           setUser(null);
           setFirebaseUser(null);
         }
