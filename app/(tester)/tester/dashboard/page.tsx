@@ -1,14 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { signOut } from '@/lib/firebase/auth';
+import { getShiftsByTester } from '@/lib/firebase/shifts';
+import { Shift } from '@/types';
 import { Card, Button } from '@/components';
+import Link from 'next/link';
 
 export default function TesterDashboard() {
   const router = useRouter();
   const { user, loading, error } = useAuth();
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shiftsLoading, setShiftsLoading] = useState(true);
 
   useEffect(() => {
     // エラーがある場合、トップページにリダイレクト（エラー画面表示）
@@ -27,7 +32,26 @@ export default function TesterDashboard() {
     if (!loading && user && user.role !== 'tester') {
       router.push('/admin/dashboard');
     }
+
+    // シフトを取得
+    if (user && user.role === 'tester') {
+      fetchShifts();
+    }
   }, [user, loading, error]);
+
+  const fetchShifts = async () => {
+    if (!user) return;
+
+    try {
+      setShiftsLoading(true);
+      const data = await getShiftsByTester(user.id);
+      setShifts(data);
+    } catch (err) {
+      console.error('シフト取得エラー:', err);
+    } finally {
+      setShiftsLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -92,15 +116,56 @@ export default function TesterDashboard() {
           {/* 今日のシフト */}
           <Card title="今日のシフト">
             <p className="text-gray-600 text-sm mb-4">本日の勤務予定</p>
-            <p className="text-lg text-gray-700 mb-2">予定なし</p>
-            <p className="text-sm text-gray-500">実装予定</p>
+            {shiftsLoading ? (
+              <p className="text-sm text-gray-500">読み込み中...</p>
+            ) : (
+              <>
+                {(() => {
+                  const today = new Date();
+                  const todayStr = today.toDateString();
+                  const todayShifts = shifts.filter((s) => s.date.toDateString() === todayStr);
+
+                  if (todayShifts.length === 0) {
+                    return <p className="text-lg text-gray-700 mb-2">予定なし</p>;
+                  }
+
+                  return todayShifts.map((shift) => (
+                    <div key={shift.id} className="mb-2">
+                      <p className="text-lg font-semibold text-gray-900">
+                        {shift.startTime} 〜 {shift.endTime}
+                      </p>
+                      <p className="text-sm text-gray-600">予定時間: {shift.expectedWorkHours}時間</p>
+                    </div>
+                  ));
+                })()}
+              </>
+            )}
           </Card>
 
           {/* 今週のシフト */}
           <Card title="今週のシフト">
             <p className="text-gray-600 text-sm mb-4">今週の勤務予定</p>
-            <p className="text-3xl font-bold text-primary-600 mb-2">0日</p>
-            <p className="text-sm text-gray-500">実装予定</p>
+            {shiftsLoading ? (
+              <p className="text-sm text-gray-500">読み込み中...</p>
+            ) : (
+              <>
+                {(() => {
+                  const today = new Date();
+                  const startOfWeek = new Date(today);
+                  startOfWeek.setDate(today.getDate() - today.getDay());
+                  const endOfWeek = new Date(startOfWeek);
+                  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+                  const weekShifts = shifts.filter((s) => {
+                    return s.date >= startOfWeek && s.date <= endOfWeek;
+                  });
+
+                  return (
+                    <p className="text-3xl font-bold text-primary-600 mb-2">{weekShifts.length}日</p>
+                  );
+                })()}
+              </>
+            )}
           </Card>
         </div>
 
@@ -118,10 +183,12 @@ export default function TesterDashboard() {
               <p className="text-sm text-gray-600">確定したシフトを確認</p>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">📱 QRコード</h4>
-              <p className="text-sm text-gray-600">出退勤用QRコードを表示</p>
-            </Card>
+            <Link href="/tester/attendance">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">📱 出退勤打刻</h4>
+                <p className="text-sm text-gray-600">QRコードで出退勤を打刻</p>
+              </Card>
+            </Link>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <h4 className="font-bold text-gray-900 mb-2">⏰ 出退勤履歴</h4>

@@ -269,6 +269,12 @@ export default function ShiftsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <Link
+                          href={`/admin/shifts/${shift.id}/qr`}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          QR
+                        </Link>
+                        <Link
                           href={`/admin/shifts/${shift.id}/edit`}
                           className="text-primary-600 hover:text-primary-900"
                         >
