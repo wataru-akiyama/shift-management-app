@@ -130,10 +130,12 @@ export default function AdminDashboard() {
               </Card>
             </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">⏰ 出退勤管理</h4>
-              <p className="text-sm text-gray-600">打刻記録の確認・修正</p>
-            </Card>
+            <Link href="/admin/attendance">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <h4 className="font-bold text-gray-900 mb-2">⏰ 出退勤管理</h4>
+                <p className="text-sm text-gray-600">打刻記録の確認・修正</p>
+              </Card>
+            </Link>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <h4 className="font-bold text-gray-900 mb-2">💰 給与管理</h4>
