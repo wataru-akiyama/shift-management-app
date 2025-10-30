@@ -16,7 +16,7 @@ export default function TesterDashboard() {
     } else if (!loading && user && user.role !== 'tester') {
       router.push('/admin/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   const handleLogout = async () => {
     try {

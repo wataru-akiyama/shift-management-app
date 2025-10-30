@@ -22,7 +22,7 @@ export default function Home() {
         router.push('/login');
       }
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   // ローディング中の表示
   return (

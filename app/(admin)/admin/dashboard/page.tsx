@@ -16,7 +16,7 @@ export default function AdminDashboard() {
     } else if (!loading && user && user.role !== 'admin') {
       router.push('/tester/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   const handleLogout = async () => {
     try {
