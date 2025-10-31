@@ -5,6 +5,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  setDoc,
   query,
   where,
   orderBy,
@@ -115,7 +116,40 @@ export async function getTester(testerId: string): Promise<User | null> {
 }
 
 /**
+ * テスター情報を作成（Firebase AuthenticationのUIDを使用）
+ */
+export async function createTesterWithUID(
+  uid: string,
+  testerData: {
+    name: string;
+    email: string;
+    phone: string;
+  }
+): Promise<string> {
+  try {
+    const userRef = doc(db, 'users', uid);
+
+    // 指定されたUIDでドキュメントを作成
+    await setDoc(userRef, {
+      name: testerData.name,
+      email: testerData.email,
+      phone: testerData.phone,
+      role: 'tester',
+      status: 'active',
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+
+    return uid;
+  } catch (error) {
+    console.error('テスター作成エラー:', error);
+    throw error;
+  }
+}
+
+/**
  * テスター情報を作成（Firestoreのみ、認証は後で）
+ * @deprecated createTesterWithUID を使用してください
  */
 export async function createTesterData(testerData: {
   name: string;
