@@ -3,13 +3,14 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { createTesterData } from '@/lib/firebase/testers';
+import { createTesterWithUID } from '@/lib/firebase/testers';
 import { Button, Card } from '@/components';
 import Link from 'next/link';
 
 export default function NewTesterPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const [uid, setUid] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,8 +28,14 @@ export default function NewTesterPage() {
     setError(null);
 
     // バリデーション
-    if (!name.trim() || !email.trim() || !phone.trim()) {
+    if (!uid.trim() || !name.trim() || !email.trim() || !phone.trim()) {
       setError('すべての項目を入力してください');
+      return;
+    }
+
+    // UIDのバリデーション（28文字の英数字）
+    if (uid.trim().length < 20) {
+      setError('有効なUID を入力してください（Firebase Authenticationで作成したUID）');
       return;
     }
 
@@ -48,7 +55,7 @@ export default function NewTesterPage() {
 
     try {
       setLoading(true);
-      await createTesterData({
+      await createTesterWithUID(uid.trim(), {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -58,7 +65,7 @@ export default function NewTesterPage() {
       router.push('/admin/testers');
     } catch (err) {
       console.error('テスター登録エラー:', err);
-      setError('テスターの登録に失敗しました。もう一度お試しください。');
+      setError('テスターの登録に失敗しました。UIDが正しいか確認してください。');
     } finally {
       setLoading(false);
     }
@@ -96,6 +103,45 @@ export default function NewTesterPage() {
                 {error}
               </div>
             )}
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2">📝 登録前の準備</h3>
+              <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                <li>
+                  <a
+                    href="https://console.firebase.google.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-900"
+                  >
+                    Firebase Console
+                  </a>
+                  を開く
+                </li>
+                <li>Authentication → Users → Add user でユーザーを作成</li>
+                <li>作成したユーザーの UID をコピー</li>
+                <li>下記のフォームに UID を貼り付けて登録</li>
+              </ol>
+            </div>
+
+            <div>
+              <label htmlFor="uid" className="block text-sm font-medium text-gray-700 mb-2">
+                UID (Firebase Authentication) <span className="text-red-600">*</span>
+              </label>
+              <input
+                id="uid"
+                type="text"
+                required
+                value={uid}
+                onChange={(e) => setUid(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
+                placeholder="例: abc123def456..."
+                disabled={loading}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Firebase Authenticationで作成したユーザーのUIDを入力してください
+              </p>
+            </div>
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -152,11 +198,12 @@ export default function NewTesterPage() {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-yellow-800 mb-2">注意事項</h3>
+              <h3 className="text-sm font-semibold text-yellow-800 mb-2">⚠️ 注意事項</h3>
               <ul className="text-sm text-yellow-700 space-y-1 list-disc list-inside">
-                <li>登録後、テスターは入力したメールアドレスでログインできます</li>
-                <li>初期パスワードは別途テスターに通知してください</li>
+                <li>メールアドレスはFirebase Authenticationで登録したものと同じにしてください</li>
+                <li>Firebase Authenticationで設定したパスワードでログインできます</li>
                 <li>ステータスは「アクティブ」で登録されます</li>
+                <li>UIDが正しくないと、ログインできません</li>
               </ul>
             </div>
 
