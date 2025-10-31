@@ -9,7 +9,7 @@ import { getProject } from '@/lib/firebase/projects';
 import { Shift } from '@/types';
 import { Card } from '@/components';
 import Link from 'next/link';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function ShiftQRCodePage() {
   const router = useRouter();
@@ -150,7 +150,7 @@ export default function ShiftQRCodePage() {
 
             {/* QRコード */}
             <div className="bg-white p-8 rounded-lg border-2 border-gray-200 inline-block">
-              <QRCode value={shiftId} size={256} level="H" />
+              <QRCodeSVG value={shiftId} size={256} level="H" />
             </div>
 
             <p className="mt-6 text-sm text-gray-600">

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function MyQRPage() {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function MyQRPage() {
 
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-white border-4 border-gray-200 rounded-lg">
-            <QRCode
+            <QRCodeSVG
               value={user.id}
               size={280}
               level="H"
