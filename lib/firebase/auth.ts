@@ -5,7 +5,7 @@ import {
   sendPasswordResetEmail,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from './config';
 import { User, UserRole } from '@/types';
 
@@ -50,8 +50,8 @@ export async function createUser(email: string, password: string, userData: Part
       phone: userData.phone || '',
       role: userData.role || 'tester',
       status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     };
 
     await setDoc(doc(db, 'users', uid), userDoc);
