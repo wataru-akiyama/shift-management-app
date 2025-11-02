@@ -30,7 +30,9 @@ function convertTimestampToDate(timestamp: any): Date {
 export async function getShifts(): Promise<Shift[]> {
   try {
     const shiftsRef = collection(db, 'shifts');
-    const q = query(shiftsRef, orderBy('date', 'desc'), orderBy('startTime', 'asc'));
+    // TODO: インデックス構築完了後に有効化
+    // const q = query(shiftsRef, orderBy('date', 'desc'), orderBy('startTime', 'asc'));
+    const q = query(shiftsRef);
     const querySnapshot = await getDocs(q);
 
     const shifts: Shift[] = [];
@@ -48,6 +50,13 @@ export async function getShifts(): Promise<Shift[]> {
         createdAt: convertTimestampToDate(data.createdAt),
         updatedAt: convertTimestampToDate(data.updatedAt),
       });
+    });
+
+    // クライアント側でソート（日付降順 → 開始時間昇順）
+    shifts.sort((a, b) => {
+      const dateCompare = b.date.getTime() - a.date.getTime();
+      if (dateCompare !== 0) return dateCompare;
+      return a.startTime.localeCompare(b.startTime);
     });
 
     return shifts;
@@ -72,8 +81,9 @@ export async function getShiftsByDate(date: Date): Promise<Shift[]> {
       shiftsRef,
       where('date', '>=', Timestamp.fromDate(startOfDay)),
       where('date', '<=', Timestamp.fromDate(endOfDay)),
-      orderBy('date', 'asc'),
-      orderBy('startTime', 'asc')
+      orderBy('date', 'asc')
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('startTime', 'asc')
     );
     const querySnapshot = await getDocs(q);
 
@@ -92,6 +102,11 @@ export async function getShiftsByDate(date: Date): Promise<Shift[]> {
         createdAt: convertTimestampToDate(data.createdAt),
         updatedAt: convertTimestampToDate(data.updatedAt),
       });
+    });
+
+    // クライアント側でstartTimeでソート（昇順）
+    shifts.sort((a, b) => {
+      return a.startTime.localeCompare(b.startTime);
     });
 
     return shifts;

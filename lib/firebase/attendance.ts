@@ -114,8 +114,9 @@ export async function getAttendancesByTester(testerId: string): Promise<Attendan
     const attendancesRef = collection(db, 'attendances');
     const q = query(
       attendancesRef,
-      where('testerId', '==', testerId),
-      orderBy('date', 'desc')
+      where('testerId', '==', testerId)
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('date', 'desc')
     );
     const querySnapshot = await getDocs(q);
 
@@ -137,6 +138,11 @@ export async function getAttendancesByTester(testerId: string): Promise<Attendan
         createdAt: convertTimestampToDate(data.createdAt),
         updatedAt: convertTimestampToDate(data.updatedAt),
       });
+    });
+
+    // クライアント側でソート（降順）
+    attendances.sort((a, b) => {
+      return b.date.getTime() - a.date.getTime();
     });
 
     return attendances;
