@@ -109,8 +109,9 @@ export async function getShiftsByTester(testerId: string): Promise<Shift[]> {
     const shiftsRef = collection(db, 'shifts');
     const q = query(
       shiftsRef,
-      where('testerId', '==', testerId),
-      orderBy('date', 'desc')
+      where('testerId', '==', testerId)
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('date', 'desc')
     );
     const querySnapshot = await getDocs(q);
 
@@ -129,6 +130,11 @@ export async function getShiftsByTester(testerId: string): Promise<Shift[]> {
         createdAt: convertTimestampToDate(data.createdAt),
         updatedAt: convertTimestampToDate(data.updatedAt),
       });
+    });
+
+    // クライアント側でソート（降順）
+    shifts.sort((a, b) => {
+      return b.date.getTime() - a.date.getTime();
     });
 
     return shifts;

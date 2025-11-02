@@ -63,8 +63,9 @@ export async function getShiftRequestsByTester(testerId: string): Promise<ShiftR
     const shiftRequestsRef = collection(db, 'shiftRequests');
     const q = query(
       shiftRequestsRef,
-      where('testerId', '==', testerId),
-      orderBy('date', 'desc')
+      where('testerId', '==', testerId)
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('date', 'desc')
     );
     const querySnapshot = await getDocs(q);
 
@@ -83,6 +84,11 @@ export async function getShiftRequestsByTester(testerId: string): Promise<ShiftR
       });
     });
 
+    // クライアント側でソート（降順）
+    shiftRequests.sort((a, b) => {
+      return b.date.getTime() - a.date.getTime();
+    });
+
     return shiftRequests;
   } catch (error) {
     console.error('テスター別シフト申請取得エラー:', error);
@@ -98,8 +104,9 @@ export async function getShiftRequestsByStatus(status: ShiftRequestStatus): Prom
     const shiftRequestsRef = collection(db, 'shiftRequests');
     const q = query(
       shiftRequestsRef,
-      where('status', '==', status),
-      orderBy('date', 'desc')
+      where('status', '==', status)
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('date', 'desc')
     );
     const querySnapshot = await getDocs(q);
 
@@ -116,6 +123,11 @@ export async function getShiftRequestsByStatus(status: ShiftRequestStatus): Prom
         createdAt: convertTimestampToDate(data.createdAt),
         updatedAt: convertTimestampToDate(data.updatedAt),
       });
+    });
+
+    // クライアント側でソート（降順）
+    shiftRequests.sort((a, b) => {
+      return b.date.getTime() - a.date.getTime();
     });
 
     return shiftRequests;

@@ -22,8 +22,9 @@ export async function getTesters(): Promise<User[]> {
     const testersRef = collection(db, 'users');
     const q = query(
       testersRef,
-      where('role', '==', 'tester'),
-      orderBy('createdAt', 'desc')
+      where('role', '==', 'tester')
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('createdAt', 'desc')
     );
 
     const querySnapshot = await getDocs(q);
@@ -43,6 +44,12 @@ export async function getTesters(): Promise<User[]> {
       });
     });
 
+    // クライアント側でソート
+    testers.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
     return testers;
   } catch (error) {
     console.error('テスター一覧取得エラー:', error);
@@ -59,8 +66,9 @@ export async function getActiveTesters(): Promise<User[]> {
     const q = query(
       testersRef,
       where('role', '==', 'tester'),
-      where('status', '==', 'active'),
-      orderBy('createdAt', 'desc')
+      where('status', '==', 'active')
+      // TODO: インデックス構築完了後に有効化
+      // orderBy('createdAt', 'desc')
     );
 
     const querySnapshot = await getDocs(q);
@@ -78,6 +86,12 @@ export async function getActiveTesters(): Promise<User[]> {
         createdAt: data.createdAt?.toDate(),
         updatedAt: data.updatedAt?.toDate(),
       });
+    });
+
+    // クライアント側でソート
+    testers.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      return b.createdAt.getTime() - a.createdAt.getTime();
     });
 
     return testers;
