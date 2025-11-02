@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ユーザーコレクション
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // シフトコレクション
+    match /shifts/{shiftId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // 案件コレクション
+    match /projects/{projectId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // 出退勤コレクション
+    match /attendances/{attendanceId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // シフト申請コレクション
+    match /shiftRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // デフォルト: 他のコレクションへのアクセスを拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
