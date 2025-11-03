@@ -126,7 +126,7 @@ export default function AdminDashboard() {
       {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 px-8 py-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
+          <h1 className="text-3xl font-bold text-red-900">🎉 新しいダッシュボード 🎉</h1>
           <p className="text-gray-600 mt-1">
             ようこそ、{user.name}さん。システム全体の概要を確認できます。
           </p>
