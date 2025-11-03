@@ -3,14 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { signOut } from '@/lib/firebase/auth';
 import { getShifts } from '@/lib/firebase/shifts';
 import { getAttendances } from '@/lib/firebase/attendance';
 import { getShiftRequestsByStatus } from '@/lib/firebase/shiftRequests';
 import { getTesters } from '@/lib/firebase/testers';
 import { getProjects } from '@/lib/firebase/projects';
 import { Shift, Attendance, User, Project } from '@/types';
-import { Card, Button } from '@/components';
+import { Card, AdminLayout } from '@/components';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -71,15 +70,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      router.push('/login');
-    } catch (error) {
-      console.error('ログアウトエラー:', error);
-    }
-  };
-
   // 統計情報を計算
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -116,12 +106,14 @@ export default function AdminDashboard() {
 
   if (loading || dataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+      <AdminLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
@@ -130,98 +122,107 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AdminLayout>
       {/* ヘッダー */}
-      <header className="bg-primary-600 text-white shadow-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">シフト管理アプリ</h1>
-              <p className="text-sm text-primary-100">管理者ダッシュボード</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm">{user.name}さん</span>
-              <Button
-                onClick={handleLogout}
-                variant="secondary"
-                size="sm"
-              >
-                ログアウト
-              </Button>
-            </div>
-          </div>
+      <header className="bg-white border-b border-gray-200 px-8 py-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
+          <p className="text-gray-600 mt-1">
+            ようこそ、{user.name}さん。システム全体の概要を確認できます。
+          </p>
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            ようこそ、{user.name}さん
-          </h2>
-          <p className="text-gray-600">
-            管理者ダッシュボードへようこそ。ここからシフト管理、出退勤管理、給与計算などの各機能にアクセスできます。
-          </p>
-        </div>
+      <main className="p-8">
 
+        {/* 統計カード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* 今日のシフト */}
-          <Card title="今日のシフト">
-            <p className="text-gray-600 text-sm mb-4">本日の予定されているシフト</p>
-            <p className="text-3xl font-bold text-primary-600 mb-2">{todayShifts.length}件</p>
-            <Link href="/admin/shifts" className="text-sm text-blue-600 hover:text-blue-800">
-              詳細を見る →
-            </Link>
-          </Card>
+          <Link href="/admin/shifts">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">今日のシフト</p>
+                  <p className="text-4xl font-bold text-primary-600">{todayShifts.length}</p>
+                </div>
+                <div className="text-3xl">📅</div>
+              </div>
+              <p className="text-sm text-gray-500">本日予定されているシフト</p>
+            </Card>
+          </Link>
 
           {/* 今日の出勤状況 */}
-          <Card title="今日の出勤状況">
-            <p className="text-gray-600 text-sm mb-4">本日の打刻済み人数</p>
-            <p className="text-3xl font-bold text-green-600 mb-2">
-              {clockedInCount} / {todayShifts.length}名
-            </p>
-            <Link href="/admin/attendance" className="text-sm text-blue-600 hover:text-blue-800">
-              詳細を見る →
-            </Link>
-          </Card>
+          <Link href="/admin/attendance">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">出勤状況</p>
+                  <p className="text-4xl font-bold text-green-600">
+                    {clockedInCount}<span className="text-2xl text-gray-400">/{todayShifts.length}</span>
+                  </p>
+                </div>
+                <div className="text-3xl">⏰</div>
+              </div>
+              <p className="text-sm text-gray-500">本日の打刻済み人数</p>
+            </Card>
+          </Link>
 
-          {/* 未承認のシフト希望 */}
-          <Card title="未承認のシフト申請">
-            <p className="text-gray-600 text-sm mb-4">承認待ちの申請件数</p>
-            <p className="text-3xl font-bold text-orange-600 mb-2">{pendingRequestsCount}件</p>
-            <Link href="/admin/shift-requests" className="text-sm text-blue-600 hover:text-blue-800">
-              詳細を見る →
-            </Link>
-          </Card>
+          {/* 未承認のシフト申請 */}
+          <Link href="/admin/shift-requests">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">未承認申請</p>
+                  <p className="text-4xl font-bold text-orange-600">{pendingRequestsCount}</p>
+                </div>
+                <div className="text-3xl">📝</div>
+              </div>
+              <p className="text-sm text-gray-500">承認待ちの申請件数</p>
+            </Card>
+          </Link>
 
           {/* 今週のシフト */}
-          <Card title="今週のシフト">
-            <p className="text-gray-600 text-sm mb-4">今週のシフト総数</p>
-            <p className="text-3xl font-bold text-purple-600 mb-2">{weekShifts.length}件</p>
-            <Link href="/admin/shifts/calendar" className="text-sm text-blue-600 hover:text-blue-800">
-              カレンダーを見る →
-            </Link>
-          </Card>
+          <Link href="/admin/shifts/calendar">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">今週のシフト</p>
+                  <p className="text-4xl font-bold text-purple-600">{weekShifts.length}</p>
+                </div>
+                <div className="text-3xl">📊</div>
+              </div>
+              <p className="text-sm text-gray-500">今週のシフト総数</p>
+            </Card>
+          </Link>
         </div>
 
         {/* 今日のシフト詳細 */}
-        {todayShifts.length > 0 && (
-          <Card className="mb-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">今日のシフト詳細</h3>
+        {todayShifts.length > 0 ? (
+          <Card>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">今日のシフト詳細</h3>
+              <Link
+                href="/admin/shifts"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                すべて見る →
+              </Link>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       テスター
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       案件
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       時間
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       出勤状況
                     </th>
                   </tr>
@@ -230,27 +231,29 @@ export default function AdminDashboard() {
                   {todayShifts.map((shift) => {
                     const attendance = todayAttendances.find((a) => a.shiftId === shift.id);
                     return (
-                      <tr key={shift.id}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium">
-                          {userMap.get(shift.testerId) || '不明'}
-                        </td>
+                      <tr key={shift.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">
+                            {userMap.get(shift.testerId) || '不明'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-700">
                           {projectMap.get(shift.projectId) || '不明'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-700">
                           {shift.startTime} 〜 {shift.endTime}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {attendance?.clockInTime && attendance?.clockOutTime ? (
-                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                               退勤済み
                             </span>
                           ) : attendance?.clockInTime ? (
-                            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               出勤中
                             </span>
                           ) : (
-                            <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                               未出勤
                             </span>
                           )}
@@ -262,61 +265,19 @@ export default function AdminDashboard() {
               </table>
             </div>
           </Card>
+        ) : (
+          <Card>
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-2">今日のシフトはありません</p>
+              <Link href="/admin/shifts/new">
+                <span className="text-sm text-primary-600 hover:text-primary-700">
+                  新しいシフトを作成する
+                </span>
+              </Link>
+            </div>
+          </Card>
         )}
-
-        {/* クイックアクセス */}
-        <div className="mt-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">クイックアクセス</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/admin/projects">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-bold text-gray-900 mb-2">📋 案件管理</h4>
-                <p className="text-sm text-gray-600">案件の登録・編集・削除</p>
-              </Card>
-            </Link>
-
-            <Link href="/admin/shift-requests">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-bold text-gray-900 mb-2">📝 シフト申請管理</h4>
-                <p className="text-sm text-gray-600">シフト申請の承認・却下</p>
-              </Card>
-            </Link>
-
-            <Link href="/admin/shifts">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-bold text-gray-900 mb-2">📅 シフト管理</h4>
-                <p className="text-sm text-gray-600">シフトの確認・承認・編集</p>
-              </Card>
-            </Link>
-
-            <Link href="/admin/attendance">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-bold text-gray-900 mb-2">⏰ 出退勤管理</h4>
-                <p className="text-sm text-gray-600">打刻記録の確認・修正</p>
-              </Card>
-            </Link>
-
-            <Link href="/admin/payroll">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-bold text-gray-900 mb-2">💰 給与管理</h4>
-                <p className="text-sm text-gray-600">給与計算・レポート</p>
-              </Card>
-            </Link>
-
-            <Link href="/admin/testers">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-bold text-gray-900 mb-2">👥 テスター管理</h4>
-                <p className="text-sm text-gray-600">テスターの登録・編集</p>
-              </Card>
-            </Link>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <h4 className="font-bold text-gray-900 mb-2">⚙️ システム設定</h4>
-              <p className="text-sm text-gray-600">休憩時間などの設定</p>
-            </Card>
-          </div>
-        </div>
       </main>
-    </div>
+    </AdminLayout>
   );
 }
